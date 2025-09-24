@@ -160,7 +160,126 @@ Notes:
   <font color=red>**You are encouraged to use this
 deformable version**</font> as it uses deformable attention in both encoder and deocder, which is more lightweight (i.e, train with 4/8 A100 GPUs) and converges faster (i.e, achieves ```48.4``` in 24 epochs, comparable to the 50-epoch DAB-Deformable-DETR).
 
-# Usage
+# Quick Start
+
+## 🚀 One-Click Deployment Script
+
+We provide a comprehensive deployment script (`deploy.sh`) that automates the entire setup process from environment configuration to training execution.
+
+### Features
+- **Automated Environment Setup**: Creates virtual environment and installs dependencies
+- **System Requirements Check**: Validates Python, GPU, and disk space
+- **Manual Dataset Configuration**: Supports custom dataset paths (no automatic downloads)
+- **Intelligent Training**: Automatically detects and uses appropriate training scripts
+- **Colored Output**: Clear status indicators and error handling
+
+### Quick Commands
+
+```bash
+# Setup environment and dependencies
+./deploy.sh setup
+
+# Train with your custom dataset
+./deploy.sh train /path/to/your/dataset
+
+# Check system status
+./deploy.sh status
+
+# Run inference (requires trained model)
+./deploy.sh inference
+
+# Clean temporary files
+./deploy.sh clean
+
+# Show help
+./deploy.sh help
+```
+
+### Dataset Requirements
+
+Your dataset should follow this structure:
+```
+your_dataset/
+├── train2017/          # Training images
+├── val2017/            # Validation images (optional)
+├── annotations/        # Annotation files
+│   ├── instances_train2017.json
+│   └── instances_val2017.json
+└── ...
+```
+
+Alternative structure (also supported):
+```
+your_dataset/
+├── images/             # All images
+├── annotations/        # Annotation files
+└── ...
+```
+
+### Examples
+
+```bash
+# Setup and train in one go
+./deploy.sh setup
+./deploy.sh train ./my_custom_dataset
+
+# Train with COCO dataset
+./deploy.sh train /data/coco2017
+
+# Train with absolute path
+./deploy.sh train /home/user/datasets/custom_object_detection
+```
+
+The deployment script automatically:
+- Creates and activates virtual environment (`dn_detr_env`)
+- Installs PyTorch with appropriate CUDA support
+- Validates dataset structure and path
+- Uses optimal training parameters based on your system
+- Provides clear progress feedback and error handling
+
+## 🪟 Windows Users
+
+For Windows users, we provide batch files for easy setup and training:
+
+### Windows Deployment Scripts
+
+```batch
+REM One-click setup and training (interactive)
+setup_and_train_windows.bat
+
+REM Training only (after setup)
+train_windows.bat
+```
+
+### Features
+- **Automated Environment Setup**: Creates virtual environment and installs dependencies
+- **CUDA Detection**: Automatically installs appropriate PyTorch version (CUDA/CPU)
+- **Interactive Configuration**: Prompts for training parameters and dataset path
+- **Error Handling**: Clear error messages and recovery suggestions
+- **GPU Monitoring**: Displays CUDA availability and GPU information
+
+### Windows Usage Examples
+
+```batch
+REM Run interactive setup and training
+setup_and_train_windows.bat
+
+REM Manual training with specific dataset
+set DATASET_PATH=C:\datasets\my_custom_dataset
+train_windows.bat
+```
+
+The Windows scripts will:
+- Check Python installation and PATH configuration
+- Create virtual environment (`dn_detr_env`)
+- Install PyTorch with CUDA support (falls back to CPU if needed)
+- Install all required dependencies including COCO API
+- Prompt for dataset path and training parameters
+- Start training with your specified configuration
+
+**💡 Note**: Make sure Python 3.8+ is installed and added to your system PATH before running the Windows scripts.
+
+# Advanced Usage
 ## How to use denoising training in your own model
 Our code largely follows DAB-DETR and adds additional components for denoising training, which are warped in a file [dn_components.py](models/DAB_DETR/dn_components.py). There are mainly 3 functions including **prepare_for_dn**, **dn_post_proces** (the first two are used in your detection forward function to process the dn part), and **compute_dn_loss**(this one is used to calculate dn loss). You can import these functions and add them to your own detection model.
 You may also compare DN-DETR and DAB-DETR to see how these functions are added if you would like to use it in your own detection models.
@@ -169,7 +288,10 @@ You are also encouraged to apply it to some other DETR-like models or even tradi
 in this repo.
 
 
-## Installation
+## Manual Installation (Alternative to Deploy Script)
+
+If you prefer manual setup instead of using the deployment script, follow these steps:
+
 We use the DAB-DETR project as our codebase, hence no extra dependency is needed for our **DN-DETR**. For the **DN-Deformable-DETR**, you need to compile the deformable attention operator manually.
 
 We test our models under ```python=3.7.3,pytorch=1.9.0,cuda=11.1```. Other versions might be available as well.
@@ -193,7 +315,7 @@ conda install -c pytorch pytorch torchvision
 pip install -r requirements.txt
 ```
 
-4. Compiling CUDA operators
+4. Compiling CUDA operators (for deformable models only)
 ```sh
 cd models/dn_dab_deformable_detr/ops
 python setup.py build install
@@ -201,6 +323,8 @@ python setup.py build install
 python test.py
 cd ../../..
 ```
+
+**💡 Tip**: For easier setup, use our deployment script instead: `./deploy.sh setup`
 
 ## Data
 Please download [COCO 2017](https://cocodataset.org/) dataset and organize them as following:
